@@ -57,7 +57,6 @@ export async function checkAdmin() {
     console.log(auth);
     const user = auth.currentUser;
     if (!user) {
-        console.log("null user");
         window.location.href = "/projects/answers-time/index.html";
         return;
     }
@@ -67,14 +66,12 @@ export async function checkAdmin() {
         const userDoc = await getDoc(userDocRef);
 
         if (!userDoc.exists()) {
-            console.log("invalid user");
             window.location.href = "/projects/answers-time/index.html";
             return;
         }
 
         const userData = userDoc.data();
         if (userData.role !== "admin") {
-            console.log("non-admin user");
             window.location.href = "/projects/answers-time/index.html";
             // TODO : Make jail page
             return;
@@ -82,7 +79,7 @@ export async function checkAdmin() {
 
         window.location.href = "/projects/answers-time/index.html";
     } catch (error) {
-        console.log("error");
+
         console.log(error);
         window.location.href = "/projects/answers-time/admin-panel/index.html";
     }
