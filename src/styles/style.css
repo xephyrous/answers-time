@@ -76,14 +76,14 @@ html, body {
 
 #login-gentleman {
     position: absolute;
-    left: 200px;
+    left: 345px;
     bottom: 10px;
     transform: rotate(90deg);
     transition: left 1s linear, scale 0.1s linear;
 }
 
 #login-gentleman:hover {
-    left: 220px;
+    left: 365px;
 }
 
 #login-gentleman:active {
