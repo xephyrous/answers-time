@@ -1,14 +1,14 @@
-import './baseStyle.css'
-import './style.css'
+import './styles/baseStyle.css'
+import './styles/style.css'
 import 'xp.css/dist/XP.css'
 
 import './askJakeButton.js'
 import './elevenlabsWidget.js'
-import {restyle} from "./elevenlabsWidget.js";
+import { restyle } from "./elevenlabsWidget.js";
 
 // Main page layout
 document.querySelector('#app').innerHTML = `
-    <div id="main-window" class="window" style="width: 100%; height: 100%">
+    <div id="main-window" class="window-full" style="width: 100%; height: 100%">
         <div class="title-bar" style="position: relative; z-index: 10">
             <div class="title-bar-text">Answers Time!</div>
             <div class="title-bar-controls">
@@ -19,7 +19,7 @@ document.querySelector('#app').innerHTML = `
         </div>
         <div class="window-body">
             <div class="center-fill">
-                <img id="logo" class="img-border" style="z-index: 20" src="ANSWERS_TIME_BANNER.png" alt="Answers Time Banner!">
+                <img id="logo" class="img-border" style="z-index: 20" src="answers_time_banner.png" alt="Answers Time Banner!">
             </div>
             
             <div class="window" id="ask-jake-window">
@@ -36,6 +36,8 @@ document.querySelector('#app').innerHTML = `
                 </div>
             </div>
             
+            <img src="icons/msagent.png" alt="Login Gentleman" id="login-gentleman">
+            
             <elevenlabs-convai agent-id="5pnMP6M3rGgecFTd8oIJ"></elevenlabs-convai><script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
         </div>
     </div>
@@ -43,4 +45,15 @@ document.querySelector('#app').innerHTML = `
 
 document.addEventListener("DOMContentLoaded", () => {
     restyle();
+});
+
+document.getElementById("login-gentleman").addEventListener("click", () => {
+    if (document.getElementById("login-gentleman").getBoundingClientRect().left < 229) {
+        console.log(document.getElementById("login-gentleman").getBoundingClientRect().left);
+        return;
+    }
+
+    setTimeout(() => {
+        window.location.href = "/projects/answers-time/login/index.html";
+    }, 500);
 });

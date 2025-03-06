@@ -19,6 +19,13 @@ export function restyle() {
         poweredBy.remove();
     } catch (_) {}
 
+    // Feedback response
+    try {
+        wrapper = root.querySelector("div");
+        const feedbackBox = wrapper.querySelector("._feedback_me40k_425");
+        feedbackBox.remove();
+    } catch (_) {}
+
     // Terms box
     try {
         wrapper = root.querySelector("._customContent_me40k_66");
