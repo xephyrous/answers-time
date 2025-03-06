@@ -31,8 +31,9 @@ document.querySelector('#app').innerHTML = `
                         <button aria-label="Close"></button>
                     </div>
                 </div>
-                <div class="window-body">
+                <div class="window-body" style="display: flex; flex-direction: row">
                     <img id="ask-jake-button" src="button_n.png" alt="Ask Jake Button">
+                    <textarea id="jake-text" style="margin: 10px; color: black"></textarea>
                 </div>
             </div>
             

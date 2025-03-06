@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc } from "firebase/firestore";
+import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -85,6 +85,21 @@ export async function checkAdmin() {
         console.log("error");
         console.log(error);
         window.location.href = "/projects/answers-time/admin-panel/index.html";
+    }
+}
+
+export async function addMessage(message) {
+    try {
+        const messageDocRef = doc(db, "data", "messages");
+        const timestampKey = Date.now();
+
+        await updateDoc(messageDocRef, {
+            [timestampKey]: message
+        });
+
+        alert("The wise one hears you.")
+    } catch (error) {
+        alert("Couldn't ask jake!");
     }
 }
 
