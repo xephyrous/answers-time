@@ -1,6 +1,8 @@
-import { initializeApp } from "firebase/app";
-import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
-import { getFirestore, doc, getDoc, updateDoc } from "firebase/firestore";
+import {initializeApp} from "firebase/app";
+import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth";
+import {doc, getDoc, getFirestore, updateDoc} from "firebase/firestore";
+
+export var blockSignOut = false;
 
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -53,36 +55,40 @@ export async function loginAdmin(email, password) {
     }
 }
 
-export async function checkAdmin() {
-    console.log(auth);
-    const user = auth.currentUser;
-    if (!user) {
-        window.location.href = "/projects/answers-time/index.html";
-        return;
-    }
+export function checkAdmin() {
+    return new Promise((resolve, reject) => {
+        onAuthStateChanged(auth, async (user) => {
+            if (!user) {
+                window.location.href = "/projects/answers-time/index.html";
+                resolve(false);
+                return;
+            }
 
-    try {
-        const userDocRef = doc(db, "users", user.email); // Assuming the document ID is email
-        const userDoc = await getDoc(userDocRef);
+            try {
+                const userDocRef = doc(db, "users", user.email);
+                const userDoc = await getDoc(userDocRef);
 
-        if (!userDoc.exists()) {
-            window.location.href = "/projects/answers-time/index.html";
-            return;
-        }
+                if (!userDoc.exists()) {
+                    window.location.href = "/projects/answers-time/index.html";
+                    resolve(false);
+                    return;
+                }
 
-        const userData = userDoc.data();
-        if (userData.role !== "admin") {
-            window.location.href = "/projects/answers-time/index.html";
-            // TODO : Make jail page
-            return;
-        }
+                const userData = userDoc.data();
+                if (userData.role !== "admin") {
+                    window.location.href = "/projects/answers-time/index.html";
+                    resolve(false);
+                    return;
+                }
 
-        window.location.href = "/projects/answers-time/index.html";
-    } catch (error) {
-
-        console.log(error);
-        window.location.href = "/projects/answers-time/admin-panel/index.html";
-    }
+                resolve(true);
+            } catch (error) {
+                console.error("Error checking admin role:", error);
+                window.location.href = "/projects/answers-time/admin-panel/index.html";
+                reject(error);
+            }
+        });
+    });
 }
 
 export async function addMessage(message) {
@@ -100,8 +106,27 @@ export async function addMessage(message) {
     }
 }
 
-// Logout after leaving site
-window.addEventListener("beforeunload", () => { signOut(auth) });
+export async function getMessages() {
+    try {
+        const docRef = doc(db, "data", "messages");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return Object.entries(data).map(([timestamp, value]) => {
+                const date = new Date(Number(timestamp));
+                const formattedDate = date.toLocaleString();
+                return {date: formattedDate, value: value};
+            });
+        } else {
+            console.log("No messages document!");
+            return [];
+        }
+    } catch (error) {
+        console.error("Error retrieving messages:", error);
+        return [];
+    }
+}
 
 // 1 hour timeout
 const logoutTime = 3600000;

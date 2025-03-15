@@ -89,3 +89,15 @@ html, body {
 #login-gentleman:active {
     scale: 105%;
 }
+
+#home-button {
+    position: absolute;
+    top: 40px;
+    left: 15px;
+    min-width: 30px !important;
+    width: 30px !important;
+    height: 30px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4) !important;
+}

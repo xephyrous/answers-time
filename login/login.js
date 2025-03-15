@@ -2,7 +2,7 @@ import '../src/styles/baseStyle.css'
 import '../src/styles/style.css'
 import 'xp.css/dist/XP.css'
 
-import { loginAdmin } from "../src/api/firebase.js";
+import { loginAdmin, blockSignOut } from "../src/api/firebase.js";
 
 document.querySelector('#app').innerHTML = `
     <div id="main-window" class="window" style="width: 100%; height: 100%">
@@ -47,7 +47,9 @@ document.getElementById("login-button").addEventListener("click", () => {
     loginAdmin(document.getElementById("username_field").value, document.getElementById("password_field").value)
         .then((user) => {
             if (user) {
-                window.location = "/projects/answers-time/admin-panel/index.html"
+                setTimeout(() => {
+                    window.location = "/projects/answers-time/admin-panel/index.html";
+                }, 100);
             }
         });
 });

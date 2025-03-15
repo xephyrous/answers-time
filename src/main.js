@@ -5,6 +5,7 @@ import 'xp.css/dist/XP.css'
 import './askJakeButton.js'
 import './elevenlabsWidget.js'
 import { restyle } from "./elevenlabsWidget.js";
+import {checkAdmin} from "./api/firebase.js";
 
 // Main page layout
 document.querySelector('#app').innerHTML = `
@@ -48,13 +49,19 @@ document.addEventListener("DOMContentLoaded", () => {
     restyle();
 });
 
-document.getElementById("login-gentleman").addEventListener("click", () => {
+document.getElementById("login-gentleman").addEventListener("click", async () => {
     if (document.getElementById("login-gentleman").getBoundingClientRect().left < 229) {
         console.log(document.getElementById("login-gentleman").getBoundingClientRect().left);
         return;
     }
 
-    setTimeout(() => {
-        window.location.href = "/projects/answers-time/login/index.html";
-    }, 500);
+    if (await checkAdmin()) {
+        setTimeout(() => {
+            window.location.href = "/projects/answers-time/admin-panel/index.html";
+        }, 500);
+    } else {
+        setTimeout(() => {
+            window.location.href = "/projects/answers-time/login/index.html";
+        }, 500);
+    }
 });
