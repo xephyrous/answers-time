@@ -5,6 +5,7 @@ import 'xp.css/dist/XP.css'
 import './askJakeButton.js'
 import './elevenlabsWidget.js'
 import { restyle } from "./elevenlabsWidget.js";
+import {getMostRecentVideo, getUploadsPlaylist} from "./api/youtube.js";
 
 // Main page layout
 document.querySelector('#app').innerHTML = `
@@ -20,6 +21,17 @@ document.querySelector('#app').innerHTML = `
         <div class="window-body">
             <div class="center-fill">
                 <img id="logo" class="img-border" style="z-index: 20" src="answers_time_banner.png" alt="Answers Time Banner!">
+            </div>
+            
+            <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex">
+                <div class="window" style="width: 50%; max-height: 70vh; height: auto">
+                    <div class="title-bar" style="position: relative; z-index: 10">
+                        <div class="title-bar-text" id="video-title"></div>
+                    </div>
+                    <div class="window-body" id="message-window" style="max-height: 65vh; height: auto; overflow-y: hidden">
+                        <img id="video-thumbnail" src="" alt="Video Thumbnail">
+                    </div>
+                </div>
             </div>
             
             <div class="window" id="ask-jake-window">
@@ -44,9 +56,20 @@ document.querySelector('#app').innerHTML = `
     </div>
 `
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
     restyle();
+
+    // Load most recent video
+    const mostRecent = await getMostRecentVideo();
+    document.getElementById("video-title").innerText = mostRecent.title;
+    document.getElementById("video-thumbnail").src = mostRecent.thumbnail;
+    document.getElementById("video-thumbnail").setAttribute("data-video-id", mostRecent.videoId);
 });
+
+document.getElementById("video-thumbnail").addEventListener("click", () => {
+    const id = document.getElementById("video-thumbnail").getAttribute("data-video-id");
+    window.open(`https://www.youtube.com/watch?v=${id}`, '_blank');
+})
 
 document.getElementById("login-gentleman").addEventListener("click", async () => {
     if (document.getElementById("login-gentleman").getBoundingClientRect().left < 229) {

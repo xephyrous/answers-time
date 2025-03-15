@@ -5,6 +5,10 @@ body {
     box-sizing: border-box;
 }
 
+textarea {
+    resize: none !important;
+}
+
 .center-fill {
     display: flex;
     justify-content: center;
@@ -100,4 +104,20 @@ html, body {
     margin: 0 !important;
     padding: 0 !important;
     background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4) !important;
+}
+
+#video-thumbnail {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    transition: scale 0.3s ease-in-out;
+}
+
+#video-thumbnail:hover {
+    transform: scale(0.98);
+}
+
+#video-thumbnail:active {
+    transform: scale(0.96);
 }
