@@ -55,13 +55,7 @@ document.getElementById("login-gentleman").addEventListener("click", async () =>
         return;
     }
 
-    if (await checkAdmin()) {
-        setTimeout(() => {
-            window.location.href = "/projects/answers-time/admin-panel/index.html";
-        }, 500);
-    } else {
-        setTimeout(() => {
-            window.location.href = "/projects/answers-time/login/index.html";
-        }, 500);
-    }
+    setTimeout(() => {
+        window.location.href = "/projects/answers-time/login/index.html";
+    }, 500);
 });
