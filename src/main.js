@@ -5,7 +5,6 @@ import 'xp.css/dist/XP.css'
 import './askJakeButton.js'
 import './elevenlabsWidget.js'
 import { restyle } from "./elevenlabsWidget.js";
-import {checkAdmin} from "./api/firebase.js";
 
 // Main page layout
 document.querySelector('#app').innerHTML = `

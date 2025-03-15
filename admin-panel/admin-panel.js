@@ -18,7 +18,7 @@ document.querySelector('#app').innerHTML = `
         </div>
         <div class="window-body">
             <div class="center-fill">
-                <img id="logo" style="z-index: 20" src="../public/jake_time_banner.png" alt="Log In Banner!">
+                <img id="logo" style="z-index: 20" src="../jake_time_banner.png" alt="Log In Banner!">
             </div>
             
             <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex">
@@ -33,7 +33,7 @@ document.querySelector('#app').innerHTML = `
     </div>
     
     <button id="home-button">
-        <img src="../public/icons/home.png" alt="Home Button" style="width: 25px; height: 25px">
+        <img src="../icons/home.png" alt="Home Button" style="width: 25px; height: 25px">
     </button>
 `
 
