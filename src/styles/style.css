@@ -57,6 +57,17 @@ html, body {
     background-color: rgba(236, 233, 216, 0.9);
 }
 
+.small-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 25px;
+    min-height: 25px;
+    width: 25px;
+    height: 25px;
+    margin: 3px;
+}
+
 /* Elevenlabs overloads */
 ._box_me40k_37 {
     background-color: #c0c0c0 !important;
@@ -111,7 +122,7 @@ html, body {
     aspect-ratio: 16 / 9;
     object-fit: cover;
     display: block;
-    transition: scale 0.3s ease-in-out;
+    transition: box-shadow 0.3s ease-in-out, scale 0.3s ease-in-out;
 }
 
 #video-thumbnail:hover {

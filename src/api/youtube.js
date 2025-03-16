@@ -27,11 +27,17 @@ export async function getAllVideos(pageToken = '') {
     const response = await fetch(url);
     const data = await response.json();
 
-    let videos = data.items.map(item => ({
-        title: item.snippet.title,
-        videoId: item.snippet.resourceId.videoId
-    }));
+    let videos = data.items.map(item => {
+        const snippet = item.snippet;
+        return {
+            title: snippet.title,
+            videoId: snippet.resourceId.videoId,
+            thumbnail: snippet.thumbnails.high.url,
+            publishedAt: snippet.publishedAt
+        };
+    });
 
+    // Fetch next page if there is one
     if (data.nextPageToken) {
         videos = videos.concat(await getAllVideos(data.nextPageToken));
     }
