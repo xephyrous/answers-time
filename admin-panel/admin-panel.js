@@ -32,7 +32,7 @@ document.querySelector('#app').innerHTML = `
             </div>
             
             <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex">
-                <section class="tabs" style="width: 50%; height: auto">
+                <section class="tabs" style="width: 50%; height: auto; z-index: 1050">
                     <menu role="tablist" aria-label="Sample Tabs">
                        <button role="tab" aria-selected="true" aria-controls="questions"><strong>New Questions</strong></button>
                        <button role="tab" aria-controls="questions-archive"><strong>Questions Archive</strong></button>
@@ -48,6 +48,23 @@ document.querySelector('#app').innerHTML = `
                     <!-- Production Studio -->
                     <article role="tabpanel" hidden id="production-studio" style="max-height: 67vh; overflow-y: scroll"></article>
                 </section>
+            </div>
+            
+            <div class="center-fill alert-container" style="height: 100%">
+               <div class="window alert-modal" id="alert-window" style="max-width: 30vw; max-height: 30vh; display: none">
+                   <div class="title-bar">
+                       <div class="title-bar-text" id="alert-title"></div>
+                       <div class="title-bar-controls">
+                           <button aria-label="Minimize"></button>
+                           <button aria-label="Restore"></button>
+                           <button aria-label="Close" onclick="document.getElementById('alert-window').style.display = 'none'"></bu tton>
+                       </div>
+                   </div>
+                   <div class="window-body" style="display: flex; flex-direction: row; overflow-y: auto; max-height: 23vh">
+                       <img src="" alt="Alert Icon" id="alert-icon" style="width: 25px; height: 25px; margin-left: 5px; position: fixed">
+                       <p id="alert-text" style="margin-left: 35px; font-weight: bold"></p>
+                   </div>
+               </div>
             </div>
         </div>
     </div>
@@ -90,7 +107,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
    // Generate messages
    generateMessages(document.getElementById("questions"), sortedMessages, Buttons.ADD);
+   document.querySelector("[aria-controls='questions']").children[0].innerText = "Questions (" + sortedMessages.length + ")";
    generateMessages(document.getElementById("questions-archive"), oldMessages, Buttons.ADD);
+   document.querySelector("[aria-controls='questions-archive']").children[0].innerText = "Questions Archive (" + oldMessages.length + ")";
 
    // Tab panel interactions
    const tabButtons = document.querySelectorAll('[role="tab"]');

@@ -1,6 +1,7 @@
 import {initializeApp} from "firebase/app";
 import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth";
 import {doc, getDoc, getFirestore, updateDoc} from "firebase/firestore";
+import {AlertLevel, displayAlert} from "../alerts.js";
 
 export var blockSignOut = false;
 
@@ -100,9 +101,9 @@ export async function addMessage(message) {
             [timestampKey]: message
         });
 
-        alert("The wise one hears you.")
+        displayAlert("The wise one hears you.", AlertLevel.INFO, "The Jake Button", "icons/utopia_smiley.png");
     } catch (error) {
-        alert("Couldn't ask jake!");
+        displayAlert("Couldn't ask jake!", AlertLevel.ERROR);
     }
 }
 

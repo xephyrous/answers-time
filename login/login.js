@@ -39,6 +39,23 @@ document.querySelector('#app').innerHTML = `
                     </div>
                 </div>
             </div>
+            
+            <div class="center-fill alert-container" style="height: 100%">
+                <div class="window alert-modal" id="alert-window" style="max-width: 30vw; max-height: 30vh; display: none">
+                    <div class="title-bar">
+                        <div class="title-bar-text" id="alert-title"></div>
+                        <div class="title-bar-controls">
+                            <button aria-label="Minimize"></button>
+                            <button aria-label="Restore"></button>
+                            <button aria-label="Close" onclick="document.getElementById('alert-window').style.display = 'none'"></bu tton>
+                        </div>
+                    </div>
+                    <div class="window-body" style="display: flex; flex-direction: row; overflow-y: auto; max-height: 23vh">
+                        <img src="" alt="Alert Icon" id="alert-icon" style="width: 25px; height: 25px; margin-left: 5px; position: fixed">
+                        <p id="alert-text" style="margin-left: 35px; font-weight: bold"></p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 `

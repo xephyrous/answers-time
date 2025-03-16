@@ -68,6 +68,15 @@ html, body {
     margin: 3px;
 }
 
+.alert-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    align-items: flex-start;
+    margin-top: 15px;
+}
+
 /* Elevenlabs overloads */
 ._box_me40k_37 {
     background-color: #c0c0c0 !important;

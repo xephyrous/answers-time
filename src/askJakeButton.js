@@ -1,5 +1,6 @@
 import './elevenlabsWidget.js'
 import { addMessage } from "./api/firebase.js";
+import {displayAlert} from "./alerts.js";
 
 let askButtonState = 0;
 
@@ -43,9 +44,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function askJake() {
     const text = document.getElementById("jake-text").value;
-    console.log(text);
+    document.getElementById("jake-text").innerText = '';
+
     if (text === "") {
-        // TODO : Jake scold
+        //displayAlert("")
         return;
     }
 

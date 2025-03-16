@@ -6,6 +6,7 @@ import './askJakeButton.js'
 import './elevenlabsWidget.js'
 import { restyle } from "./elevenlabsWidget.js";
 import {getMostRecentVideo, getUploadsPlaylist} from "./api/youtube.js";
+import {AlertLevel, displayAlert} from "./alerts.js";
 
 // Main page layout
 document.querySelector('#app').innerHTML = `
@@ -34,7 +35,7 @@ document.querySelector('#app').innerHTML = `
                 </div>
             </div>
             
-            <div class="window" id="ask-jake-window">
+            <div class="window" id="ask-jake-window" style="z-index: 1050">
                 <div class="title-bar">
                     <div class="title-bar-text">Ask Jake</div>
                     <div class="title-bar-controls">
@@ -49,7 +50,24 @@ document.querySelector('#app').innerHTML = `
                 </div>
             </div>
             
-            <img src="icons/msagent.png" alt="Login Gentleman" id="login-gentleman">
+            <img src="icons/msagent.png" alt="Login Gentleman" style="z-index: 1025" id="login-gentleman">
+            
+            <div class="center-fill alert-container" style="height: 100%">
+                <div class="window alert-modal" id="alert-window" style="max-width: 30vw; max-height: 30vh; display: none">
+                    <div class="title-bar">
+                        <div class="title-bar-text" id="alert-title"></div>
+                        <div class="title-bar-controls">
+                            <button aria-label="Minimize"></button>
+                            <button aria-label="Restore"></button>
+                            <button aria-label="Close" onclick="document.getElementById('alert-window').style.display = 'none'"></bu tton>
+                        </div>
+                    </div>
+                    <div class="window-body" style="display: flex; flex-direction: row; overflow-y: auto; max-height: 23vh">
+                        <img src="" alt="Alert Icon" id="alert-icon" style="width: 25px; height: 25px; margin-left: 5px; position: fixed">
+                        <p id="alert-text" style="margin-left: 35px; font-weight: bold"></p>
+                    </div>
+                </div>
+            </div>
             
             <elevenlabs-convai agent-id="5pnMP6M3rGgecFTd8oIJ"></elevenlabs-convai><script src="https://elevenlabs.io/convai-widget/index.js" async type="text/javascript"></script>
         </div>
