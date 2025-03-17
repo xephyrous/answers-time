@@ -77,6 +77,25 @@ html, body {
     margin-top: 15px;
 }
 
+.floating-button {
+    position: relative;
+    min-width: 30px !important;
+    width: 30px !important;
+    height: 30px !important;
+    margin: 5px !important;
+    padding: 0 !important;
+    background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4) !important;
+}
+
+.control-group {
+    position: absolute;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+
 /* Elevenlabs overloads */
 ._box_me40k_37 {
     background-color: #c0c0c0 !important;
@@ -112,18 +131,6 @@ html, body {
 
 #login-gentleman:active {
     scale: 105%;
-}
-
-#home-button {
-    position: absolute;
-    top: 40px;
-    left: 15px;
-    min-width: 30px !important;
-    width: 30px !important;
-    height: 30px !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: linear-gradient(180deg, #fff, #ecebe5 86%, #d8d0c4) !important;
 }
 
 #video-thumbnail {

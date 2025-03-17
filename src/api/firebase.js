@@ -129,6 +129,10 @@ export async function getMessages() {
     }
 }
 
+export function logoutUser() {
+    signOut(auth);
+}
+
 // 1 hour timeout
 const logoutTime = 3600000;
 setTimeout(() => {

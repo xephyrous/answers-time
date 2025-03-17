@@ -4,7 +4,7 @@ import 'xp.css/dist/XP.css';
 
 import '../src/checkAdmin.js';
 import '../src/api/firebase.js';
-import { getMessages } from "../src/api/firebase.js";
+import {getMessages, logoutUser} from "../src/api/firebase.js";
 import {getAllVideos} from "../src/api/youtube.js";
 
 let stagedMessages = [];
@@ -28,7 +28,7 @@ document.querySelector('#app').innerHTML = `
         </div>
         <div class="window-body">
             <div class="center-fill">
-                <img id="logo" style="z-index: 20" src="../jake_time_banner.png" alt="Log In Banner!">
+                <img id="logo" class="img-border" style="z-index: 20" src="../jake_time_banner.png" alt="Log In Banner!">
             </div>
             
             <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex">
@@ -69,12 +69,26 @@ document.querySelector('#app').innerHTML = `
         </div>
     </div>
     
-    <button id="home-button">
-        <img src="../icons/home.png" alt="Home Button" style="width: 25px; height: 25px">
-    </button>
+    <fieldset class="control-group" style="top: 40px; left: 15px; width: 100px; height: 65px">
+       <legend>User Controls</legend>
+       <div class="field-row">
+          <button id="home-button" class="floating-button" title="Home">
+              <img src="../icons/home.png" alt="Home Button" style="width: 25px; height: 25px">
+          </button>
+          
+          <button id="logout-button" class="floating-button" title="Logout">
+              <img src="../icons/logout.png" alt="Logout Button" style="width: 25px; height: 25px">
+          </button>
+       </div>
+    </fieldset>
 `
 
 document.getElementById("home-button").addEventListener("click", () => {
+   window.location = "/projects/answers-time/index.html";
+})
+
+document.getElementById("logout-button").addEventListener("click", async () => {
+   await logoutUser();
    window.location = "/projects/answers-time/index.html";
 })
 
