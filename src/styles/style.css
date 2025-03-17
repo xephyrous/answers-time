@@ -170,11 +170,11 @@ html, body {
 }
 
 #question-text {
-    margin-top: 90px;
     font-weight: bold;
     font-size: 20px;
-    width: calc(100% - 100px);
+    width: calc(100% - 110px);
     height: calc(100% - 140px);
+    margin-top: 90px;
 
     display: flex;
     align-items: center;
