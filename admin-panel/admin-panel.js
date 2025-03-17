@@ -36,7 +36,7 @@ document.querySelector('#app').innerHTML = `
                     <menu role="tablist" aria-label="Sample Tabs">
                        <button role="tab" aria-selected="true" aria-controls="questions"><strong>New Questions</strong></button>
                        <button role="tab" aria-controls="questions-archive"><strong>Questions Archive</strong></button>
-                       <button role="tab" aria-controls="production-studio"><strong>Production Studio</strong></button>
+                       <button role="tab" aria-controls="production-studio"><strong>Production Studio (0)</strong></button>
                     </menu>
                     
                     <!-- Questions Panel -->
@@ -164,6 +164,7 @@ function generateMessages(container, messages, buttonType) {
             case Buttons.ADD:
                button.onclick = () => {
                   stagedMessages.push(message);
+                  document.querySelector("[aria-controls='production-studio']").children[0].innerText = "Production Studio (" + stagedMessages.length + ")";
                   addImage.src = "../icons/good.png";
                   setTimeout(() => {
                      addImage.src = "../icons/add.png";
@@ -174,6 +175,7 @@ function generateMessages(container, messages, buttonType) {
                button.onclick = () => {
                   const pos = stagedMessages.findIndex(obj => obj === message);
                   stagedMessages.splice(pos, 1);
+                  document.querySelector("[aria-controls='production-studio']").children[0].innerText = "Production Studio (" + stagedMessages.length + ")";
                   textArea.remove();
                };
                break;
