@@ -96,6 +96,16 @@ html, body {
     padding: 0;
 }
 
+.question-card {
+    position: absolute;
+    bottom: 100px;
+    left: 100px;
+    width: 640px;
+    height: 360px;
+    z-index: 2000;
+    background-color: blue;
+}
+
 /* Elevenlabs overloads */
 ._box_me40k_37 {
     background-color: #c0c0c0 !important;
@@ -147,4 +157,28 @@ html, body {
 
 #video-thumbnail:active {
     transform: scale(0.96);
+}
+
+#question-card {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: url("../question_card.png");
+    background-size: cover;
+    top: calc(50% - 180px);
+}
+
+#question-text {
+    margin-top: 90px;
+    font-weight: bold;
+    font-size: 20px;
+    width: calc(100% - 100px);
+    height: calc(100% - 140px);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding-bottom: 30px;
 }

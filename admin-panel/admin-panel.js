@@ -6,8 +6,12 @@ import '../src/checkAdmin.js';
 import '../src/api/firebase.js';
 import {getMessages, logoutUser} from "../src/api/firebase.js";
 import {getAllVideos} from "../src/api/youtube.js";
+import {AlertLevel, displayAlert} from "../src/alerts.js";
 
 let stagedMessages = [];
+let productionMode = false;
+let currentQuestion = -1;
+let noPress = false;
 
 const Buttons = {
    ADD: '../icons/add.png',
@@ -27,16 +31,19 @@ document.querySelector('#app').innerHTML = `
             </div>
         </div>
         <div class="window-body">
-            <div class="center-fill">
+            <div class="center-fill" id="logo-box">
                 <img id="logo" class="img-border" style="z-index: 20" src="../jake_time_banner.png" alt="Log In Banner!">
             </div>
             
             <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex">
-                <section class="tabs" style="width: 50%; height: auto; z-index: 1050">
+                <section class="tabs" style="width: 50%; height: auto; z-index: 1050" id="tab-panel">
                     <menu role="tablist" aria-label="Sample Tabs">
                        <button role="tab" aria-selected="true" aria-controls="questions"><strong>New Questions</strong></button>
                        <button role="tab" aria-controls="questions-archive"><strong>Questions Archive</strong></button>
                        <button role="tab" aria-controls="production-studio"><strong>Production Studio (0)</strong></button>
+                       <button role="tab" aria-controls="production-mode" style="display: none; margin-left: auto" title="Production Mode">
+                          <img src="../icons/play.png" alt="Production Mode" style="width: 20px; height: 20px; padding-top: 3px">
+                       </button>
                     </menu>
                     
                     <!-- Questions Panel -->
@@ -48,6 +55,10 @@ document.querySelector('#app').innerHTML = `
                     <!-- Production Studio -->
                     <article role="tabpanel" hidden id="production-studio" style="max-height: 67vh; overflow-y: scroll"></article>
                 </section>
+            </div>
+            
+            <div id="question-card" class="question-card" style="left: -645px">
+                <p id="question-text"></p>
             </div>
             
             <div class="center-fill alert-container" style="height: 100%">
@@ -69,7 +80,24 @@ document.querySelector('#app').innerHTML = `
         </div>
     </div>
     
-    <fieldset class="control-group" style="top: 40px; left: 15px; width: 100px; height: 65px">
+    <div class="center-fill" >
+        <fieldset class="control-group" id="question-controls" style="bottom: 20px; width: 120px; height: 65px; display: none">
+          <legend>Question Controls</legend>
+          <div class="field-row">
+             <button id="previous-button" class="floating-button" title="Previous Question">
+                 <img src="../icons/previous.png" alt="Previous Button" style="width: 25px; height: 25px">
+             </button>
+             
+             <strong style="margin-right: 6px; font-size: 14px" id="question-count">?/?</strong>
+             
+             <button id="next-button" class="floating-button" title="Next Question">
+                 <img src="../icons/next.png" alt="Next Button" style="width: 25px; height: 25px">
+             </button>
+          </div>
+        </fieldset>
+    </div>
+    
+    <fieldset class="control-group" id="floating-controls" style="top: 40px; left: 15px; width: 100px; height: 65px">
        <legend>User Controls</legend>
        <div class="field-row">
           <button id="home-button" class="floating-button" title="Home">
@@ -83,21 +111,108 @@ document.querySelector('#app').innerHTML = `
     </fieldset>
 `
 
+// Return to homepage
 document.getElementById("home-button").addEventListener("click", () => {
    window.location = "/projects/answers-time/index.html";
 })
 
+// Logout
 document.getElementById("logout-button").addEventListener("click", async () => {
    await logoutUser();
    window.location = "/projects/answers-time/index.html";
 })
 
+// Previous question
+document.getElementById("previous-button").addEventListener("click", async () => {
+   if (productionMode && stagedMessages.length > 0 && currentQuestion !== 0 && !noPress) {
+      currentQuestion -= 1;
+      document.getElementById("question-count").innerText = (currentQuestion + 1) + "/" + stagedMessages.length;
+      const card = document.getElementById("question-card");
+      card.style.transition = "left 1s ease-in-out";
+      noPress = true;
+
+      card.style.left = "-645px";
+      setTimeout(() => {
+         card.style.transition = "";
+         card.style.left = "100vw";
+         setTimeout(() => {
+            document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value;
+            card.style.transition = "left 1s ease-in-out";
+            card.style.left = "calc(50% - 320px)";
+            setTimeout(() => { noPress = false; }, 1000);
+         }, 50);
+      }, 1000);
+   }
+})
+
+// Next question
+document.getElementById("next-button").addEventListener("click", async () => {
+   if (productionMode && stagedMessages.length > 0 && currentQuestion !== stagedMessages.length - 1 && !noPress) {
+      currentQuestion += 1;
+      document.getElementById("question-count").innerText = (currentQuestion + 1) + "/" + stagedMessages.length;
+      const card = document.getElementById("question-card");
+      card.style.transition = "left 1s ease-in-out";
+      noPress = true;
+
+      if (card.style.left === "-645px") {
+         document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value;
+         card.style.left = "calc(50% - 320px)";
+         setTimeout(() => { noPress = false; }, 1000);
+      } else {
+         card.style.left = "100vw";
+         setTimeout(() => {
+            card.style.transition = "";
+            card.style.left = "-645px";
+            setTimeout(() => {
+               document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value;
+               card.style.transition = "left 1s ease-in-out";
+               card.style.left = "calc(50% - 320px)";
+               setTimeout(() => { noPress = false; }, 1000);
+            }, 50);
+         }, 1000);
+      }
+   }
+})
+
+// Load production messages and display production button
 document.querySelector('[aria-controls="production-studio"]').addEventListener("click", () => {
+   document.querySelector("[aria-controls='production-mode']").style.display = "block";
    const container = document.getElementById('production-studio');
    container.innerHTML = '';
    generateMessages(container, stagedMessages, Buttons.REMOVE);
 });
 
+// Enter production mode
+document.querySelector('[aria-controls="production-mode"]').addEventListener("click", () => {
+   productionMode = true;
+   currentQuestion = -1;
+   noPress = false;
+   document.getElementById("question-count").innerText = (currentQuestion + 1) + "/" + stagedMessages.length;
+   displayAlert(
+       "Press [Escape] to exit production mode!", AlertLevel.INFO,
+       "Production Mode Activated!", "../icons/information.png", 1000
+   );
+   document.getElementById("question-card").style.display = "flex";
+   document.getElementById("floating-controls").style.display = "none";
+   document.getElementById("tab-panel").style.display = "none";
+   document.getElementById("logo-box").style.display = "none";
+   document.getElementById("question-controls").style.display = "flex";
+});
+
+// Exit production mode
+document.addEventListener("keydown", (key) => {
+   if (key.key === "Escape" && productionMode) {
+      productionMode = false;
+      document.getElementById("question-card").style.display = "none";
+      document.getElementById("floating-controls").style.display = "flex";
+      document.getElementById("tab-panel").style.display = "block";
+      document.getElementById("logo-box").style.display = "block";
+      document.querySelector("[aria-controls='production-studio']").click();
+      document.getElementById("question-controls").style.display = "none";
+   }
+});
+
+// Load messages, handle tab panel interactions
 document.addEventListener("DOMContentLoaded", async () => {
    document.getElementById("main-window").style.display = "block";
 
@@ -131,12 +246,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
    tabButtons.forEach((button) => {
       button.addEventListener("click", () => {
+         if (!button.innerText.includes("Production Studio")) {
+            document.querySelector("[aria-controls='production-mode']").style.display = "none";
+         }
          tabButtons.forEach((btn) => btn.setAttribute("aria-selected", "false"));
          tabPanels.forEach((panel) => panel.hidden = true);
 
          button.setAttribute("aria-selected", "true");
          const panelId = button.getAttribute("aria-controls");
-         document.getElementById(panelId).hidden = false;
+         try { document.getElementById(panelId).hidden = false; } catch (_) {}
       });
    });
 });
