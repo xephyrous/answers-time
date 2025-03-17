@@ -7,6 +7,7 @@ import '../src/api/firebase.js';
 import {getMessages, logoutUser} from "../src/api/firebase.js";
 import {getAllVideos} from "../src/api/youtube.js";
 import {AlertLevel, displayAlert} from "../src/alerts.js";
+import {doc} from "firebase/firestore";
 
 let stagedMessages = [];
 let productionMode = false;
@@ -23,7 +24,7 @@ const Buttons = {
 document.querySelector('#app').innerHTML = `
     <div id="main-window" class="window" style="width: 100%; height: 100%; display: none">
         <div class="title-bar" style="position: relative; z-index: 10">
-            <div class="title-bar-text">Mr Answers Himself!</div>
+            <div class="title-bar-text">mmmungh</div>
             <div class="title-bar-controls">
                 <button aria-label="Minimize"></button>
                 <button aria-label="Restore"></button>
@@ -124,7 +125,7 @@ document.getElementById("logout-button").addEventListener("click", async () => {
 
 // Previous question
 document.getElementById("previous-button").addEventListener("click", async () => {
-   if (productionMode && stagedMessages.length > 0 && currentQuestion !== 0 && !noPress) {
+   if (productionMode && stagedMessages.length > 0 && currentQuestion !== -1 && !noPress) {
       currentQuestion -= 1;
       document.getElementById("question-count").innerText = (currentQuestion + 1) + "/" + stagedMessages.length;
       const card = document.getElementById("question-card");
@@ -203,6 +204,8 @@ document.querySelector('[aria-controls="production-mode"]').addEventListener("cl
 document.addEventListener("keydown", (key) => {
    if (key.key === "Escape" && productionMode) {
       productionMode = false;
+      document.getElementById("question-card").style.transition = "";
+      document.getElementById("question-card").style.left = "-645px";
       document.getElementById("question-card").style.display = "none";
       document.getElementById("floating-controls").style.display = "flex";
       document.getElementById("tab-panel").style.display = "block";
