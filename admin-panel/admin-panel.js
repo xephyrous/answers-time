@@ -281,7 +281,7 @@ function generateMessages(container, messages, buttonType) {
 
       const messageBox = document.createElement("div")
       messageBox.style.width = "80%";
-      messageBox.innerText = message.value;
+      messageBox.innerText = typeof message.value === "Object" ? message.value : message.value["message"];
       messageBox.style.textAlign = "left";
       messageBox.style.fontSize = "12px";
 

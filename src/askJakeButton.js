@@ -47,7 +47,6 @@ function askJake() {
     document.getElementById("jake-text").innerText = '';
 
     if (text === "") {
-        //displayAlert("")
         return;
     }
 

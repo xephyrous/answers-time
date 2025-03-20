@@ -94,11 +94,12 @@ export function checkAdmin() {
 
 export async function addMessage(message) {
     try {
+        const ip = await getIP();
         const messageDocRef = doc(db, "data", "messages");
         const timestampKey = Date.now();
 
         await updateDoc(messageDocRef, {
-            [timestampKey]: message
+            [timestampKey]: { "message": message, "ip": ip }
         });
 
         displayAlert("The wise one hears you.", AlertLevel.INFO, "The Jake Button", "icons/utopia_smiley.png");
@@ -138,3 +139,14 @@ const logoutTime = 3600000;
 setTimeout(() => {
     signOut(auth)
 }, logoutTime);
+
+async function getIP() {
+    try {
+        const response = await fetch("https://api.ipify.org?format=json");
+        const data = await response.json();
+        return data.ip || "0.0.0.0"; // Assign IP if available, else default
+    } catch (error) {
+        console.error("Error fetching IP address:", error);
+        return "0.0.0.0";
+    }
+}
