@@ -1,7 +1,7 @@
 import {initializeApp} from "firebase/app";
 import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth";
-import {doc, getDoc, getFirestore, updateDoc} from "firebase/firestore";
-import {AlertLevel, displayAlert} from "../alerts.js";
+import {doc, getDoc, getFirestore, updateDoc, setDoc} from "firebase/firestore";
+import {AlertLevel, displayAlert, displayError} from "../alerts.js";
 
 export var blockSignOut = false;
 
@@ -28,31 +28,31 @@ export async function loginAdmin(email, password) {
             const userDoc = await getDoc(userDocRef);
 
             if (!userDoc.exists()) {
-                console.error("User not found");
+                displayError("Invalid username or password!");
                 return;
             }
 
             const userData = userDoc.data();
 
             if (userData.password !== password) {
-                console.error("Incorrect password");
+                displayError("Invalid username or password!");
                 return;
             }
 
             if (user) {
                 if (userData.role !== "admin") {
-                    console.error("User is not an admin");
+                    displayError("User is not an admin");
                     return;
                 }
 
-                window.location = "/projects/answers-time/admin-panel/index.html";
+                window.location = "admin-panel.html";
             } else {
-                console.error("Error: User authentication failed.");
+                displayError("User authentication failed!");
             }
         });
 
     } catch (error) {
-        console.error("Error during admin login:", error);
+        displayError("Invalid username or password!");
     }
 }
 
@@ -84,8 +84,8 @@ export function checkAdmin() {
 
                 resolve(true);
             } catch (error) {
-                console.error("Error checking admin role:", error);
-                window.location.href = "/projects/answers-time/admin-panel/index.html";
+                displayError("Database error, failed authentication check!")
+                window.location.href = "../admin-panel/index.html";
                 reject(error);
             }
         });
@@ -104,7 +104,7 @@ export async function addMessage(message) {
 
         displayAlert("The wise one hears you.", AlertLevel.INFO, "The Jake Button", "icons/utopia_smiley.png");
     } catch (error) {
-        displayAlert("Couldn't ask jake!", AlertLevel.ERROR);
+        displayError("Couldn't ask jake!");
     }
 }
 
@@ -121,11 +121,11 @@ export async function getMessages() {
                 return {date: formattedDate, value: value};
             });
         } else {
-            console.log("No messages document!");
+            displayError("Database error, messages not found!")
             return [];
         }
     } catch (error) {
-        console.error("Error retrieving messages:", error);
+        displayError(`Error retrieving messages!\n ${error}`)
         return [];
     }
 }
@@ -144,9 +144,48 @@ async function getIP() {
     try {
         const response = await fetch("https://api.ipify.org?format=json");
         const data = await response.json();
-        return data.ip || "0.0.0.0"; // Assign IP if available, else default
+        return data.ip || "unknown";
     } catch (error) {
-        console.error("Error fetching IP address:", error);
-        return "0.0.0.0";
+        return "unknown";
+    }
+}
+
+async function getFavorites() {
+    const user = auth.currentUser.email;
+
+    try {
+        const docRef = doc(db, "data", "messages");
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return Object.entries(data).map(([timestamp, value]) => {
+                const date = new Date(Number(timestamp));
+                const formattedDate = date.toLocaleString();
+                return {date: formattedDate, value: value};
+            });
+        } else {
+            displayError("Database error, messages not found!")
+            return [];
+        }
+    } catch (error) {
+        displayError(`Error retrieving messages!\n${error}`)
+        return [];
+    }
+}
+
+export async function updateMessages(newMessages) {
+    const objectData = newMessages.reduce((acc, entry) => {
+        const timestamp = new Date(entry.date).getTime();
+        acc[timestamp] = entry.value;
+        return acc;
+    }, {});
+
+    try {
+        const messageDocRef = doc(db, "data", "messages");
+        await setDoc(messageDocRef, objectData);
+    } catch (error) {
+        console.log(error);
+        displayError("Database error, failed to update messages!");
     }
 }

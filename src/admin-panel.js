@@ -1,12 +1,12 @@
-import '../src/styles/baseStyle.css';
-import '../src/styles/style.css';
+import './styles/baseStyle.css';
+import './styles/style.css';
 import 'xp.css/dist/XP.css';
 
-import '../src/checkAdmin.js';
-import '../src/api/firebase.js';
-import {getMessages, logoutUser} from "../src/api/firebase.js";
-import {getAllVideos} from "../src/api/youtube.js";
-import {AlertLevel, displayAlert} from "../src/alerts.js";
+import './checkAdmin.js';
+import './api/firebase.js';
+import {getMessages, logoutUser, updateMessages} from "./api/firebase.js";
+import {getAllVideos} from "./api/youtube.js";
+import {AlertLevel, displayAlert, displayNotification} from "./alerts.js";
 import {doc} from "firebase/firestore";
 
 let stagedMessages = [];
@@ -15,9 +15,9 @@ let currentQuestion = -1;
 let noPress = false;
 
 const Buttons = {
-   ADD: '../icons/add.png',
-   GOOD: '../icons/goods.png',
-   REMOVE: '../icons/remove.png',
+   ADD: 'icons/add.png',
+   GOOD: 'icons/goods.png',
+   REMOVE: 'icons/remove.png',
    NONE: ''
 }
 
@@ -33,17 +33,29 @@ document.querySelector('#app').innerHTML = `
         </div>
         <div class="window-body">
             <div class="center-fill" id="logo-box">
-                <img id="logo" class="img-border" style="z-index: 20" src="../jake_time_banner.png" alt="Log In Banner!">
+                <img id="logo" class="img-border" style="z-index: 20" src="jake_time_banner.png" alt="Log In Banner!">
             </div>
             
-            <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex">
+            <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex; flex-direction: column">
+                <div style="margin-bottom: -19px; margin-right: calc(-50% + 230px); display: none">
+                    <label for="archive-filter" style="font-weight: bold">Filter</label>
+                    <select id="archive-filter" style="width: 200px; color: black; padding: 5px"></select>
+                </div>
+                <div style="margin-bottom: -19px; margin-right: calc(-50% + 230px); z-index: 1100">
+                    <label for="active-filter" style="font-weight: bold">Filter</label>
+                    <select id="active-filter" style="width: 200px; color: black; padding: 5px">
+                        <option>Newest to Oldest</option>
+                        <option>Oldest to Newest</option>
+                        <option>Favorites</option>
+                    </select>
+                </div>
                 <section class="tabs" style="width: 50%; height: auto; z-index: 1050" id="tab-panel">
                     <menu role="tablist" aria-label="Sample Tabs">
                        <button role="tab" aria-selected="true" aria-controls="questions"><strong>New Questions</strong></button>
                        <button role="tab" aria-controls="questions-archive"><strong>Questions Archive</strong></button>
                        <button role="tab" aria-controls="production-studio"><strong>Production Studio (0)</strong></button>
                        <button role="tab" aria-controls="production-mode" style="display: none; margin-left: auto" title="Production Mode">
-                          <img src="../icons/play.png" alt="Production Mode" style="width: 20px; height: 20px; padding-top: 3px">
+                          <img src="icons/play.png" alt="Production Mode" style="width: 20px; height: 20px; padding-top: 3px">
                        </button>
                     </menu>
                     
@@ -86,27 +98,31 @@ document.querySelector('#app').innerHTML = `
           <legend>Question Controls</legend>
           <div class="field-row">
              <button id="previous-button" class="floating-button" title="Previous Question">
-                 <img src="../icons/previous.png" alt="Previous Button" style="width: 25px; height: 25px">
+                 <img src="icons/previous.png" alt="Previous Button" style="width: 25px; height: 25px">
              </button>
              
              <strong style="margin-right: 6px; font-size: 14px" id="question-count">?/?</strong>
              
              <button id="next-button" class="floating-button" title="Next Question">
-                 <img src="../icons/next.png" alt="Next Button" style="width: 25px; height: 25px">
+                 <img src="icons/next.png" alt="Next Button" style="width: 25px; height: 25px">
              </button>
           </div>
         </fieldset>
     </div>
     
     <fieldset class="control-group" id="floating-controls" style="top: 40px; left: 15px; width: 100px; height: 65px">
-       <legend>User Controls</legend>
+       <legend>Admin Controls</legend>
        <div class="field-row">
           <button id="home-button" class="floating-button" title="Home">
-              <img src="../icons/home.png" alt="Home Button" style="width: 25px; height: 25px">
+              <img src="icons/home.png" alt="Home Button" style="width: 25px; height: 25px">
           </button>
           
           <button id="logout-button" class="floating-button" title="Logout">
-              <img src="../icons/logout.png" alt="Logout Button" style="width: 25px; height: 25px">
+              <img src="icons/logout.png" alt="Logout Button" style="width: 25px; height: 25px">
+          </button>
+          
+          <button id="clean-button" class="floating-button" title="Clean Questions">
+              <img src="icons/clean.png" alt="Clean Questions Button" style="width: 25px; height: 25px">
           </button>
        </div>
     </fieldset>
@@ -114,13 +130,50 @@ document.querySelector('#app').innerHTML = `
 
 // Return to homepage
 document.getElementById("home-button").addEventListener("click", () => {
-   window.location = "/projects/answers-time/index.html";
+   window.location = "index.html";
 })
 
 // Logout
 document.getElementById("logout-button").addEventListener("click", async () => {
    await logoutUser();
-   window.location = "/projects/answers-time/index.html";
+   window.location = "index.html";
+})
+
+
+// Clean Questions
+document.getElementById("clean-button").addEventListener("click", async () => {
+   const questions = await getMessages();
+   for (let question in questions) {
+      if (typeof questions[question].value === "string") {
+         questions[question].value = {
+            ip: "unknown",
+            message: questions[question].value
+         }
+      }
+   }
+
+   const filteredQuestions = questions
+       .sort((a, b) => new Date(b.date) - new Date(a.date))
+       .filter((question, index, arr) => {
+          const containsQuestionMark = question.value.message.includes('?');
+          return (
+              (index === 0 || question.value.message !== arr[index - 1].value.message) &&
+              containsQuestionMark
+          );
+       });
+
+   await updateMessages(filteredQuestions);
+
+   // TODO : regenerate displayed questions
+
+   const diff = questions.length - filteredQuestions.length;
+   if (diff === 0) {
+      displayNotification(`No messages to clean!`, AlertLevel.INFO, 2000);
+   } else if (diff === 1) {
+      displayNotification(`Cleaned 1 message!`, AlertLevel.INFO, 2000);
+   } else {
+      displayNotification(`Cleaned ${diff} messages`, AlertLevel.INFO, 2000)
+   }
 })
 
 // Previous question
@@ -191,7 +244,7 @@ document.querySelector('[aria-controls="production-mode"]').addEventListener("cl
    document.getElementById("question-count").innerText = (currentQuestion + 1) + "/" + stagedMessages.length;
    displayAlert(
        "Press [Escape] to exit production mode!", AlertLevel.INFO,
-       "Production Mode Activated!", "../icons/information.png", 1000
+       "Production Mode Activated!", "icons/information.png", 1000
    );
    document.getElementById("question-card").style.display = "flex";
    document.getElementById("floating-controls").style.display = "none";
@@ -229,6 +282,14 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       return num2 > num1 ? currentVideo : maxVideo;
    }, videos[0]);
+
+   // Generate archive filter options
+   const archiveFilter = document.getElementById("archive-filter");
+   for (let video of filteredVideos) {
+      const option = document.createElement("option");
+      option.text = video.title;
+      archiveFilter.appendChild(option);
+   }
 
    // Generate messages
    const messages = await getMessages();
@@ -281,9 +342,35 @@ function generateMessages(container, messages, buttonType) {
 
       const messageBox = document.createElement("div")
       messageBox.style.width = "80%";
-      messageBox.innerText = typeof message.value === "Object" ? message.value : message.value["message"];
+      try {
+         messageBox.innerText = message.value.message;
+         if (messageBox.innerText === undefined || messageBox.innerText === "undefined") { throw new Error(); }
+      } catch (_) {
+         messageBox.innerText = message.value;
+      }
       messageBox.style.textAlign = "left";
       messageBox.style.fontSize = "12px";
+
+      const ipBox = document.createElement("img");
+      ipBox.style.width = "20px";
+      ipBox.style.height = "20px";
+      ipBox.style.paddingRight = "7px";
+      ipBox.src = "icons/network.png";
+      ipBox.title = message.value.ip;
+
+      const star = document.createElement("img");
+      star.src = "icons/star.png";
+      star.style.width = "20px";
+      star.style.height = "20px";
+
+      const favButton = document.createElement("button");
+      favButton.classList.add("small-button");
+      favButton.title = "Favorite";
+      favButton.onclick = () => {
+         // Add to favorites list
+      };
+
+      favButton.appendChild(star);
 
       let button;
       if (buttonType !== Buttons.NONE) {
@@ -297,16 +384,18 @@ function generateMessages(container, messages, buttonType) {
 
          switch (buttonType) {
             case Buttons.ADD:
+               button.title = "Add to Production Studio"
                button.onclick = () => {
                   stagedMessages.push(message);
                   document.querySelector("[aria-controls='production-studio']").children[0].innerText = "Production Studio (" + stagedMessages.length + ")";
-                  addImage.src = "../icons/good.png";
+                  addImage.src = "icons/good.png";
                   setTimeout(() => {
-                     addImage.src = "../icons/add.png";
+                     addImage.src = "icons/add.png";
                   }, 500);
                };
                break;
             case Buttons.REMOVE:
+               button.title = "Remove from Production Studio";
                button.onclick = () => {
                   const pos = stagedMessages.findIndex(obj => obj === message);
                   stagedMessages.splice(pos, 1);
@@ -320,7 +409,11 @@ function generateMessages(container, messages, buttonType) {
       }
 
       wrapper.appendChild(dateBox);
+      if (typeof message.value === "object") {
+         wrapper.appendChild(ipBox);
+      }
       wrapper.appendChild(messageBox);
+      wrapper.appendChild(favButton);
       if (buttonType !== Buttons.NONE) { wrapper.appendChild(button); }
       content.appendChild(wrapper);
       textArea.appendChild(content);

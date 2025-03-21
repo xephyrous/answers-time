@@ -5,9 +5,9 @@ export const AlertLevel = {
 }
 
 const alertIcons = {
-    "Notification": "../icons/information.png",
-    "Warning": "../icons/warning.png",
-    "Error": "../icons/remove.png"
+    "Notification": "icons/information.png",
+    "Warning": "icons/warning.png",
+    "Error": "icons/remove.png"
 }
 
 // TODO : Add alert queue
@@ -32,4 +32,16 @@ export function displayAlert(
             window.style.display = "none";
         }, timeout);
     }
+}
+
+export function displayNotification(message, titleText = AlertLevel.INFO, timeout = null) {
+    displayAlert(message, AlertLevel.INFO, titleText, alertIcons[AlertLevel.INFO], timeout);
+}
+
+export function displayWarning(message, titleText = AlertLevel.WARNING, timeout = null) {
+    displayAlert(message, AlertLevel.WARNING, titleText, alertIcons[AlertLevel.WARNING], timeout);
+}
+
+export function displayError(message, titleText = AlertLevel.ERROR, timeout = null) {
+    displayAlert(message, AlertLevel.ERROR, titleText, alertIcons[AlertLevel.ERROR], timeout);
 }

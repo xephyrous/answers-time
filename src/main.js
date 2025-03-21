@@ -96,6 +96,6 @@ document.getElementById("login-gentleman").addEventListener("click", async () =>
     }
 
     setTimeout(() => {
-        window.location.href = "/projects/answers-time/login/index.html";
+        window.location.href = "login/index.html";
     }, 500);
 });
