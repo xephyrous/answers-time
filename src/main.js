@@ -25,7 +25,7 @@ document.querySelector('#app').innerHTML = `
             </div>
             
             <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex">
-                <div class="window" style="width: 50%; max-height: 70vh; height: auto">
+                <div class="window" style="width: 50%; max-height: 70vh; height: auto; z-index: 1050">
                     <div class="title-bar" style="position: relative; z-index: 10">
                         <div class="title-bar-text" id="video-title"></div>
                     </div>
@@ -96,6 +96,6 @@ document.getElementById("login-gentleman").addEventListener("click", async () =>
     }
 
     setTimeout(() => {
-        window.location.href = "login/index.html";
+        window.location.href = "login.html";
     }, 500);
 });
