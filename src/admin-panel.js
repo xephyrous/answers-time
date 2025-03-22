@@ -135,9 +135,8 @@ document.getElementById("home-button").addEventListener("click", () => {
 
 // Logout
 document.getElementById("logout-button").addEventListener("click", async () => {
-   await updateData();
-   // await logoutUser();
-   // window.location = "index.html";
+   await logoutUser();
+   window.location = "index.html";
 })
 
 
@@ -195,8 +194,8 @@ document.getElementById("clean-button").addEventListener("click", async () => {
 
 // Previous question
 document.getElementById("previous-button").addEventListener("click", async () => {
+   currentQuestion -= 1;
    if (productionMode && stagedMessages.length > 0 && currentQuestion !== -1 && !noPress) {
-      currentQuestion -= 1;
       document.getElementById("question-count").innerText = (currentQuestion + 1) + "/" + stagedMessages.length;
       const card = document.getElementById("question-card");
       card.style.transition = "left 1s ease-in-out";
