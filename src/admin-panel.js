@@ -4,7 +4,7 @@ import 'xp.css/dist/XP.css';
 
 import './checkAdmin.js';
 import './api/firebase.js';
-import {getMessages, logoutUser, updateMessages} from "./api/firebase.js";
+import {getMessages, logoutUser, updateMessages, getFavorites, updateData} from "./api/firebase.js";
 import {getAllVideos} from "./api/youtube.js";
 import {AlertLevel, displayAlert, displayNotification} from "./alerts.js";
 import {doc} from "firebase/firestore";
@@ -135,25 +135,17 @@ document.getElementById("home-button").addEventListener("click", () => {
 
 // Logout
 document.getElementById("logout-button").addEventListener("click", async () => {
-   await logoutUser();
-   window.location = "index.html";
+   await updateData();
+   // await logoutUser();
+   // window.location = "index.html";
 })
 
 
 // Clean Questions
 document.getElementById("clean-button").addEventListener("click", async () => {
    const questions = await getMessages();
-   for (let question in questions) {
-      if (typeof questions[question].value === "string") {
-         questions[question].value = {
-            ip: "unknown",
-            message: questions[question].value
-         }
-      }
-   }
-
    const filteredQuestions = questions
-       .sort((a, b) => new Date(b.date) - new Date(a.date))
+       .sort((a, b) => new Date(b.value.date) - new Date(a.value.date))
        .filter((question, index, arr) => {
           const containsQuestionMark = question.value.message.includes('?');
           return (
@@ -162,14 +154,39 @@ document.getElementById("clean-button").addEventListener("click", async () => {
           );
        });
 
-   await updateMessages(filteredQuestions);
-
-   // TODO : regenerate displayed questions
-
    const diff = questions.length - filteredQuestions.length;
+
    if (diff === 0) {
       displayNotification(`No messages to clean!`, AlertLevel.INFO, 2000);
-   } else if (diff === 1) {
+      return;
+   }
+
+   // Get current messages
+   const videos = await getAllVideos();
+   const regex = /answering\syour\squestions\s\d/i;
+   const filteredVideos = videos.filter(item => regex.test(item.title));
+   const latestVideo = filteredVideos.reduce((maxVideo, currentVideo) => {
+      const num1 = parseInt(maxVideo.title.trim().slice(-1), 10) || 0;
+      const num2 = parseInt(currentVideo.title.trim().slice(-1), 10) || 0;
+
+      return num2 > num1 ? currentVideo : maxVideo;
+   }, videos[0]);
+
+   // Generate messages
+   const messages = await getMessages();
+   const sortedMessages = messages.filter(msg => new Date(msg.value.date) > new Date(latestVideo.publishedAt))
+       .sort((a, b) => new Date(b.value.date) - new Date(a.value.date));
+   const oldMessages = messages.filter(msg => !sortedMessages.some(sortedMsg => sortedMsg.value.date === msg.value.date))
+       .sort((a, b) => new Date(b.value.date) - new Date(a.value.date));
+
+   // Load messages
+   generateMessages(document.getElementById("questions"), sortedMessages, Buttons.ADD);
+   document.querySelector("[aria-controls='questions']").children[0].innerText = "Questions (" + sortedMessages.length + ")";
+   generateMessages(document.getElementById("questions-archive"), oldMessages, Buttons.ADD);
+   document.querySelector("[aria-controls='questions-archive']").children[0].innerText = "Questions Archive (" + oldMessages.length + ")";
+
+   await updateMessages(filteredQuestions);
+   if (diff === 1) {
       displayNotification(`Cleaned 1 message!`, AlertLevel.INFO, 2000);
    } else {
       displayNotification(`Cleaned ${diff} messages`, AlertLevel.INFO, 2000)
@@ -190,7 +207,7 @@ document.getElementById("previous-button").addEventListener("click", async () =>
          card.style.transition = "";
          card.style.left = "100vw";
          setTimeout(() => {
-            document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value;
+            document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value.message;
             card.style.transition = "left 1s ease-in-out";
             card.style.left = "calc(50% - 320px)";
             setTimeout(() => { noPress = false; }, 1000);
@@ -209,7 +226,7 @@ document.getElementById("next-button").addEventListener("click", async () => {
       noPress = true;
 
       if (card.style.left === "-645px") {
-         document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value;
+         document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value.message;
          card.style.left = "calc(50% - 320px)";
          setTimeout(() => { noPress = false; }, 1000);
       } else {
@@ -218,7 +235,7 @@ document.getElementById("next-button").addEventListener("click", async () => {
             card.style.transition = "";
             card.style.left = "-645px";
             setTimeout(() => {
-               document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value;
+               document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value.message;
                card.style.transition = "left 1s ease-in-out";
                card.style.left = "calc(50% - 320px)";
                setTimeout(() => { noPress = false; }, 1000);
@@ -293,10 +310,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
    // Generate messages
    const messages = await getMessages();
-   const sortedMessages = messages.filter(msg => new Date(msg.date) > new Date(latestVideo.publishedAt))
-                                       .sort((a, b) => new Date(b.date) - new Date(a.date));
-   const oldMessages = messages.filter(msg => !sortedMessages.some(sortedMsg => sortedMsg.date === msg.date))
-                                    .sort((a, b) => new Date(b.date) - new Date(a.date));
+   const sortedMessages = messages.filter(msg => new Date(msg.value.date) > new Date(latestVideo.publishedAt))
+                                       .sort((a, b) => new Date(b.value.date) - new Date(a.value.date));
+   const oldMessages = messages.filter(msg => !sortedMessages.some(sortedMsg => sortedMsg.value.date === msg.value.date))
+                                    .sort((a, b) => new Date(b.value.date) - new Date(a.value.date));
 
    // Generate messages
    generateMessages(document.getElementById("questions"), sortedMessages, Buttons.ADD);
@@ -336,7 +353,7 @@ function generateMessages(container, messages, buttonType) {
 
       const dateBox = document.createElement("div")
       dateBox.style.width = "20%";
-      dateBox.innerText = message.date;
+      dateBox.innerText = message.value.date;
       dateBox.style.fontWeight = "bold";
       dateBox.style.fontSize = "12px";
 
@@ -366,8 +383,9 @@ function generateMessages(container, messages, buttonType) {
       const favButton = document.createElement("button");
       favButton.classList.add("small-button");
       favButton.title = "Favorite";
-      favButton.onclick = () => {
-         // Add to favorites list
+      favButton.onclick = async () => {
+         const favorites = await getFavorites();
+         console.log(favorites);
       };
 
       favButton.appendChild(star);

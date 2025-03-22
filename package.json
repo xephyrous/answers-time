@@ -16,6 +16,7 @@
     "firebase": "^11.1.0",
     "firebase-admin": "^13.2.0",
     "googleapis": "^146.0.0",
+    "object-hash": "^3.0.0",
     "xp.css": "^0.2.6"
   }
 }

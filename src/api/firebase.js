@@ -1,7 +1,8 @@
 import {initializeApp} from "firebase/app";
 import {getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut} from "firebase/auth";
-import {doc, getDoc, getFirestore, updateDoc, setDoc} from "firebase/firestore";
+import {doc, getDoc, getFirestore, setDoc, updateDoc} from "firebase/firestore";
 import {AlertLevel, displayAlert, displayError} from "../alerts.js";
+import hash from "object-hash";
 
 export var blockSignOut = false;
 
@@ -92,19 +93,26 @@ export function checkAdmin() {
     });
 }
 
-export async function addMessage(message) {
+export async function addMessage(message, silent = false) {
     try {
         const ip = await getIP();
         const messageDocRef = doc(db, "data", "messages");
-        const timestampKey = Date.now();
+        const jsonObj = { "message": message, "ip": ip, "timestamp": Date.now() }
 
         await updateDoc(messageDocRef, {
-            [timestampKey]: { "message": message, "ip": ip }
+            [hash(jsonObj)]: jsonObj
         });
 
-        displayAlert("The wise one hears you.", AlertLevel.INFO, "The Jake Button", "icons/utopia_smiley.png");
+        if (!silent) {
+            displayAlert("The wise one hears you.", AlertLevel.INFO, "The Jake Button", "icons/utopia_smiley.png");
+        }
     } catch (error) {
-        displayError("Couldn't ask jake!");
+        if (!silent) {
+            displayError("Couldn't ask jake!");
+            return;
+        }
+
+        console.log(error);
     }
 }
 
@@ -115,10 +123,11 @@ export async function getMessages() {
 
         if (docSnap.exists()) {
             const data = docSnap.data();
-            return Object.entries(data).map(([timestamp, value]) => {
-                const date = new Date(Number(timestamp));
-                const formattedDate = date.toLocaleString();
-                return {date: formattedDate, value: value};
+            return Object.entries(data).map(([hash, value]) => {
+                const date = new Date(Number(value.timestamp));
+                value.date = date.toLocaleString();
+                console.log(value)
+                return { hash: hash, value: value };
             });
         } else {
             displayError("Database error, messages not found!")
@@ -130,15 +139,28 @@ export async function getMessages() {
     }
 }
 
+export async function updateMessages(newMessages) {
+    const objectData = newMessages.reduce((acc, entry) => {
+        acc[entry.hash] = {
+            timestamp: entry.value.timestamp,
+            ip: entry.value.ip,
+            message: entry.value.message
+        };
+        return acc;
+    }, {});
+
+    try {
+        const messageDocRef = doc(db, "data", "messages");
+        await setDoc(messageDocRef, objectData);
+    } catch (error) {
+        console.log(error);
+        displayError("Database error, failed to update messages!");
+    }
+}
+
 export function logoutUser() {
     signOut(auth);
 }
-
-// 1 hour timeout
-const logoutTime = 3600000;
-setTimeout(() => {
-    signOut(auth)
-}, logoutTime);
 
 async function getIP() {
     try {
@@ -150,42 +172,75 @@ async function getIP() {
     }
 }
 
-async function getFavorites() {
-    const user = auth.currentUser.email;
-
+export async function getFavorites() {
     try {
-        const docRef = doc(db, "data", "messages");
+        const userEmail = auth.currentUser.email;
+        const docRef = doc(db, "users", userEmail);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            return docSnap.data().favorites;
+        } else {
+            displayError("Database error, favorites not found!")
+            return [];
+        }
+    } catch (error) {
+        displayError(`Error retrieving favorites!\n${error}`)
+        return [];
+    }
+}
+
+export async function addFavorite(message) {
+    try {
+        const userEmail = auth.currentUser.email;
+        const messageDocRef = doc(db, "users", userEmail);
+
+        await updateDoc(messageDocRef, {
+            favorites: hash(message)
+        });
+    } catch (error) {
+        displayError("Database error, could not add favorite!");
+    }
+}
+
+// 1 hour timeout
+const logoutTime = 3600000;
+setTimeout(() => {
+    signOut(auth)
+}, logoutTime);
+
+export async function updateData() {
+    try {
+        const docRef = doc(db, "data", "TESTING");
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
             const data = docSnap.data();
-            return Object.entries(data).map(([timestamp, value]) => {
-                const date = new Date(Number(timestamp));
-                const formattedDate = date.toLocaleString();
-                return {date: formattedDate, value: value};
-            });
+            const modifiedData = {};
+
+            for (const entry in data) {
+                const valueObj = {
+                    timestamp: entry,
+                    ip: data[entry].ip,
+                    message: data[entry].message,
+                };
+
+                modifiedData[hash(valueObj)] = valueObj;
+            }
+
+            try {
+                const messageDocRef = doc(db, "data", "TESTING");
+                await setDoc(messageDocRef, modifiedData);
+            } catch (error) {
+                console.log(error);
+                displayError("Database error, failed to update messages!");
+            }
         } else {
             displayError("Database error, messages not found!")
             return [];
         }
     } catch (error) {
-        displayError(`Error retrieving messages!\n${error}`)
+        displayError(`Error retrieving messages!\n ${error}`)
         return [];
-    }
-}
-
-export async function updateMessages(newMessages) {
-    const objectData = newMessages.reduce((acc, entry) => {
-        const timestamp = new Date(entry.date).getTime();
-        acc[timestamp] = entry.value;
-        return acc;
-    }, {});
-
-    try {
-        const messageDocRef = doc(db, "data", "messages");
-        await setDoc(messageDocRef, objectData);
-    } catch (error) {
-        console.log(error);
-        displayError("Database error, failed to update messages!");
     }
 }
