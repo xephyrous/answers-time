@@ -164,7 +164,7 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    background-image: url("question_card.png");
+    background-image: url("../question_card.png");
     background-size: cover;
     top: calc(50% - 180px);
 }
