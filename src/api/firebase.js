@@ -126,7 +126,6 @@ export async function getMessages() {
             return Object.entries(data).map(([hash, value]) => {
                 const date = new Date(Number(value.timestamp));
                 value.date = date.toLocaleString();
-                console.log(value)
                 return { hash: hash, value: value };
             });
         } else {
@@ -193,13 +192,45 @@ export async function getFavorites() {
 export async function addFavorite(message) {
     try {
         const userEmail = auth.currentUser.email;
-        const messageDocRef = doc(db, "users", userEmail);
+        const userDocRef = doc(db, "users", userEmail);
+        const userDocSnap = await getDoc(userDocRef);
 
-        await updateDoc(messageDocRef, {
-            favorites: hash(message)
-        });
+        if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            const currentFavorites = userData.favorites || [];
+
+            await updateDoc(userDocRef, {
+                favorites: [...currentFavorites, message.hash] // Append new item
+            });
+        } else {
+            displayError("Database error, failed to add favorite!");
+        }
     } catch (error) {
-        displayError("Database error, could not add favorite!");
+        displayError(`Database error, failed to add favorite!\n${error}`);
+    }
+}
+
+export async function removeFavorite(message) {
+    try {
+        const userEmail = auth.currentUser.email;
+        const userDocRef = doc(db, "users", userEmail);
+        const userDocSnap = await getDoc(userDocRef);
+
+        if (userDocSnap.exists()) {
+            const userData = userDocSnap.data();
+            const currentFavorites = userData.favorites || [];
+
+            // Remove the given item (filter it out)
+            const updatedFavorites = currentFavorites.filter(hash => hash !== message.hash);
+
+            await updateDoc(userDocRef, {
+                favorites: updatedFavorites
+            });
+        } else {
+            displayError("Database error, failed to remove favorite!");
+        }
+    } catch (error) {
+        displayError(`Database error, failed to remove favorite!\n${error}`);
     }
 }
 
@@ -208,39 +239,3 @@ const logoutTime = 3600000;
 setTimeout(() => {
     signOut(auth)
 }, logoutTime);
-
-export async function updateData() {
-    try {
-        const docRef = doc(db, "data", "TESTING");
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            const modifiedData = {};
-
-            for (const entry in data) {
-                const valueObj = {
-                    timestamp: entry,
-                    ip: data[entry].ip,
-                    message: data[entry].message,
-                };
-
-                modifiedData[hash(valueObj)] = valueObj;
-            }
-
-            try {
-                const messageDocRef = doc(db, "data", "TESTING");
-                await setDoc(messageDocRef, modifiedData);
-            } catch (error) {
-                console.log(error);
-                displayError("Database error, failed to update messages!");
-            }
-        } else {
-            displayError("Database error, messages not found!")
-            return [];
-        }
-    } catch (error) {
-        displayError(`Error retrieving messages!\n ${error}`)
-        return [];
-    }
-}

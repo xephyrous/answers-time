@@ -4,7 +4,13 @@ import 'xp.css/dist/XP.css';
 
 import './checkAdmin.js';
 import './api/firebase.js';
-import {getMessages, logoutUser, updateMessages, getFavorites, updateData} from "./api/firebase.js";
+import {
+   getMessages,
+   logoutUser,
+   updateMessages,
+   addFavorite,
+   removeFavorite
+} from "./api/firebase.js";
 import {getAllVideos} from "./api/youtube.js";
 import {AlertLevel, displayAlert, displayNotification} from "./alerts.js";
 import {doc} from "firebase/firestore";
@@ -37,13 +43,13 @@ document.querySelector('#app').innerHTML = `
             </div>
             
             <div style="margin-top: 20px; align-items: center; width: 100%; justify-content: center; display: flex; flex-direction: column">
-                <div style="margin-bottom: -19px; margin-right: calc(-50% + 230px); display: none">
+                <div style="margin-bottom: -19px; margin-right: calc(-50% + 230px); z-index: 1100; display: none" id="archive-filter-box">
                     <label for="archive-filter" style="font-weight: bold">Filter</label>
-                    <select id="archive-filter" style="width: 200px; color: black; padding: 5px"></select>
+                    <select id="archive-filter" data-last-filter="" style="width: 200px; color: black; padding: 5px"></select>
                 </div>
-                <div style="margin-bottom: -19px; margin-right: calc(-50% + 230px); z-index: 1100">
+                <div style="margin-bottom: -19px; margin-right: calc(-50% + 230px); z-index: 1100" id="filter-box">
                     <label for="active-filter" style="font-weight: bold">Filter</label>
-                    <select id="active-filter" style="width: 200px; color: black; padding: 5px">
+                    <select id="active-filter" data-last-filter="Newest to Oldest" style="width: 200px; color: black; padding: 5px">
                         <option>Newest to Oldest</option>
                         <option>Oldest to Newest</option>
                         <option>Favorites</option>
@@ -54,7 +60,7 @@ document.querySelector('#app').innerHTML = `
                        <button role="tab" aria-selected="true" aria-controls="questions"><strong>New Questions</strong></button>
                        <button role="tab" aria-controls="questions-archive"><strong>Questions Archive</strong></button>
                        <button role="tab" aria-controls="production-studio"><strong>Production Studio (0)</strong></button>
-                       <button role="tab" aria-controls="production-mode" style="display: none; margin-left: auto" title="Production Mode">
+                       <button role="tab" aria-controls="production-mode" style="display: none; margin-left: 10px" title="Production Mode">
                           <img src="icons/play.png" alt="Production Mode" style="width: 20px; height: 20px; padding-top: 3px">
                        </button>
                     </menu>
@@ -139,6 +145,19 @@ document.getElementById("logout-button").addEventListener("click", async () => {
    window.location = "index.html";
 })
 
+// Archive panel
+document.querySelector("[aria-controls='questions-archive']").addEventListener("click", () => {
+   document.getElementById("filter-box").style.display = "none";
+   document.getElementById("archive-filter-box").style.display = "block";
+
+
+});
+
+// Questions panel
+document.querySelector("[aria-controls='questions']").addEventListener("click", () => {
+   document.getElementById("filter-box").style.display = "block";
+   document.getElementById("archive-filter-box").style.display = "none";
+});
 
 // Clean Questions
 document.getElementById("clean-button").addEventListener("click", async () => {
@@ -194,24 +213,28 @@ document.getElementById("clean-button").addEventListener("click", async () => {
 
 // Previous question
 document.getElementById("previous-button").addEventListener("click", async () => {
-   currentQuestion -= 1;
    if (productionMode && stagedMessages.length > 0 && currentQuestion !== -1 && !noPress) {
+      currentQuestion -= 1;
       document.getElementById("question-count").innerText = (currentQuestion + 1) + "/" + stagedMessages.length;
       const card = document.getElementById("question-card");
       card.style.transition = "left 1s ease-in-out";
       noPress = true;
 
       card.style.left = "-645px";
-      setTimeout(() => {
-         card.style.transition = "";
-         card.style.left = "100vw";
+      if (currentQuestion !== -1) {
          setTimeout(() => {
-            document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value.message;
-            card.style.transition = "left 1s ease-in-out";
-            card.style.left = "calc(50% - 320px)";
-            setTimeout(() => { noPress = false; }, 1000);
-         }, 50);
-      }, 1000);
+            card.style.transition = "";
+            card.style.left = "100vw";
+            setTimeout(() => {
+               document.getElementById("question-text").innerText = stagedMessages[currentQuestion].value.message;
+               card.style.transition = "left 1s ease-in-out";
+               card.style.left = "calc(50% - 320px)";
+               setTimeout(() => { noPress = false; }, 1000);
+            }, 50);
+         }, 1000);
+      } else {
+         setTimeout(() => { noPress = false; }, 1000);
+      }
    }
 })
 
@@ -247,6 +270,9 @@ document.getElementById("next-button").addEventListener("click", async () => {
 // Load production messages and display production button
 document.querySelector('[aria-controls="production-studio"]').addEventListener("click", () => {
    document.querySelector("[aria-controls='production-mode']").style.display = "block";
+   document.getElementById("filter-box").style.display = "block";
+   document.getElementById("archive-filter-box").style.display = "none";
+
    const container = document.getElementById('production-studio');
    container.innerHTML = '';
    generateMessages(container, stagedMessages, Buttons.REMOVE);
@@ -267,6 +293,8 @@ document.querySelector('[aria-controls="production-mode"]').addEventListener("cl
    document.getElementById("tab-panel").style.display = "none";
    document.getElementById("logo-box").style.display = "none";
    document.getElementById("question-controls").style.display = "flex";
+   document.getElementById("filter-box").style.display = "none";
+   document.getElementById("archive-filter-box").style.display = "none";
 });
 
 // Exit production mode
@@ -281,6 +309,7 @@ document.addEventListener("keydown", (key) => {
       document.getElementById("logo-box").style.display = "block";
       document.querySelector("[aria-controls='production-studio']").click();
       document.getElementById("question-controls").style.display = "none";
+      document.getElementById("filter-box").style.display = "block";
    }
 });
 
@@ -374,20 +403,28 @@ function generateMessages(container, messages, buttonType) {
       ipBox.src = "icons/network.png";
       ipBox.title = message.value.ip;
 
-      const star = document.createElement("img");
-      star.src = "icons/star.png";
-      star.style.width = "20px";
-      star.style.height = "20px";
+      const favImg = document.createElement("img");
+      favImg.src = "icons/star.png";
+      favImg.style.width = "20px";
+      favImg.style.height = "20px";
 
       const favButton = document.createElement("button");
       favButton.classList.add("small-button");
       favButton.title = "Favorite";
       favButton.onclick = async () => {
-         const favorites = await getFavorites();
-         console.log(favorites);
+         switch (favImg.src.substring(favImg.src.lastIndexOf("/") + 1)) {
+            case "star.png":
+               await addFavorite(message);
+               favImg.src = "icons/good.png";
+               break;
+            case "good.png":
+               await removeFavorite(message);
+               favImg.src = "icons/star.png";
+               break;
+         }
       };
 
-      favButton.appendChild(star);
+      favButton.appendChild(favImg);
 
       let button;
       if (buttonType !== Buttons.NONE) {
